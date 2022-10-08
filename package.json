@@ -4,7 +4,9 @@
   "description": "",
   "main": "app.js",
   "scripts": {
-    "dev": "nodemon -r tsconfig-paths/register src/app.ts | ./node_modules/.bin/bunyan"
+    "start": "nodemon ./build/app.js",
+    "dev": "nodemon -r tsconfig-paths/register src/app.ts | ./node_modules/.bin/bunyan",
+    "build": "tsc -p ."
   },
   "keywords": [],
   "author": "",
