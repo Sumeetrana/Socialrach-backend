@@ -11,6 +11,7 @@ import { createAdapter } from '@socket.io/redis-adapter';
 import { Application, json, urlencoded, Response, Request, NextFunction } from 'express';
 
 import { config } from './config';
+import applicationRoutes from './routes';
 
 const SERVER_PORT = 5000;
 
@@ -54,7 +55,9 @@ export class SocialRackServer {
     app.use(urlencoded({ limit: '50mb', extended: true }))
   };
 
-  private routesMiddleware(app: Application): void { };
+  private routesMiddleware(app: Application): void {
+    applicationRoutes(app);
+  };
 
   private globalErrorHandler(app: Application): void { };
 
