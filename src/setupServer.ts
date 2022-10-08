@@ -2,6 +2,7 @@ import hpp from 'hpp';
 import http from 'http';
 import cors from 'cors';
 import helmet from 'helmet';
+import bunyan from 'bunyan';
 import compression from 'compression';
 import cookierSession from 'cookie-session';
 import HTTP_STATUS from 'http-status-codes';
@@ -15,6 +16,7 @@ import applicationRoutes from './routes';
 import { CustomError, IErrorResponse } from './shared/globals/helpers/error-handler';
 
 const SERVER_PORT = 5000;
+const log: bunyan = config.createLogger('server');
 
 export class SocialRackServer {
   private app: Application;
@@ -66,7 +68,7 @@ export class SocialRackServer {
     })
 
     app.use((error: IErrorResponse, _req: Request, res: Response, next: NextFunction) => {
-      console.log(error);
+      log.error(error);
       if (error instanceof CustomError) {
         return res.status(error.statusCode).json(error.serializeErrors());
       }
@@ -81,7 +83,7 @@ export class SocialRackServer {
       this.startHttpServer(httpServer);
       this.socketIOConnections(socketIO);
     } catch (error) {
-      console.log(error);
+      log.error(error);
     }
   };
 
@@ -104,10 +106,10 @@ export class SocialRackServer {
   };
 
   private startHttpServer(httpServer: http.Server): void {
-    console.log(`Server has started with ${process.pid}`);
+    log.info(`Server has started with ${process.pid}`);
 
     httpServer.listen(SERVER_PORT, () => {
-      console.log(`Server running on port ${SERVER_PORT}`);
+      log.info(`Server running on port ${SERVER_PORT}`);
 
     })
   };
