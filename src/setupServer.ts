@@ -5,6 +5,9 @@ import helmet from 'helmet';
 import compression from 'compression';
 import cookierSession from 'cookie-session';
 import HTTP_STATUS from 'http-status-codes';
+import { Server } from 'socket.io';
+import { createClient } from 'redis';
+import { createAdapter } from '@socket.io/redis-adapter';
 import { Application, json, urlencoded, Response, Request, NextFunction } from 'express';
 
 import { config } from './config';
@@ -58,19 +61,41 @@ export class SocialRackServer {
   private async startServer(app: Application): Promise<void> {
     try {
       const httpServer: http.Server = new http.Server(http);
+      const socketIO: Server = await this.createSocketIO(httpServer);
       this.startHttpServer(httpServer);
+      this.socketIOConnections(socketIO);
     } catch (error) {
       console.log(error);
     }
   };
 
-  private createSocketIO(httpServer: http.Server): void { };
+  private async createSocketIO(httpServer: http.Server): Promise<Server> {
+    // Socket.io server
+    const io: Server = new Server(httpServer, {
+      cors: {
+        origin: config.CLIENT_URL,
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
+      }
+    });
+
+    // Creating redis clients
+    const pubClient = createClient({ url: config.REDIS_HOST });
+    const subClient = pubClient.duplicate();
+
+    await Promise.all([pubClient.connect(), subClient.connect()]);
+    io.adapter(createAdapter(pubClient, subClient));
+    return io;
+  };
 
   private startHttpServer(httpServer: http.Server): void {
+    console.log(`Server has started with ${process.pid}`);
+
     httpServer.listen(SERVER_PORT, () => {
       console.log(`Server running on port ${SERVER_PORT}`);
 
     })
   };
+
+  private socketIOConnections(io: Server): void { }
 
 }
